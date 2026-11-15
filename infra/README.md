@@ -18,7 +18,10 @@ az group create -n gs-linux -l chilecentral
 az vm create -g gs-linux -n oportuniza-vm --image Ubuntu2404 --size Standard_B2als_v2 \
   --admin-username azureuser --ssh-key-values ~/.ssh/id_ed25519.pub --public-ip-sku Standard --os-disk-size-gb 30
 az vm open-port -g gs-linux -n oportuniza-vm --port 5080 --priority 1010
+az network public-ip update -g gs-linux -n oportuniza-vmPublicIP --dns-name oportuniza-gs
 ```
+
+O último comando cria o nome público `oportuniza-gs.chilecentral.cloudapp.azure.com`, gratuito, apontando para o IP da VM.
 
 ## Como executar
 
@@ -32,7 +35,7 @@ sudo ./infra/provision.sh
 
 O `provision.sh` roda as quatro etapas em ordem e termina com um relatório de status. Na primeira execução leva cerca de 2 minutos. Ele é idempotente: rodar de novo mantém os segredos e reaplica a configuração (cerca de 30 s).
 
-Depois: Swagger em `http://<ip-publico>:5080/swagger`, login com `ana@exemplo.local` / `Senha@123`.
+Depois: Swagger em `http://oportuniza-gs.chilecentral.cloudapp.azure.com:5080/swagger`, login com `ana@exemplo.local` / `Senha@123`.
 
 | Comando | O que faz |
 |---|---|
@@ -68,6 +71,7 @@ infra/
 - **IP:** detecta interface, IP privado, prefixo, gateway, MAC e IP público e grava o inventário em `/etc/oportuniza/rede.env`. O IP da VM é entregue pelo DHCP da Azure; fixá-lo dentro da VM derrubaria o acesso, por isso o script registra e valida o endereço em vez de alterá-lo.
 - **Resolução local:** `/etc/hosts` com `oportuniza-srv`, `api`, `db` e `monitor.oportuniza.internal`.
 - **DNS:** `systemd-resolved` com 1.1.1.1 e 8.8.8.8, fallback 9.9.9.9 e domínio de busca `oportuniza.internal`. Valida resolução externa, interna, rota padrão, porta 53 e saída HTTPS.
+- **DNS público:** confere que `DNS_PUBLICO` (o nome `cloudapp.azure.com` da VM) resolve para o IP público detectado.
 - **Kernel:** `sysctl` sem ICMP redirects nem source routing, com SYN cookies e log de pacotes marcianos.
 - **Firewall:** `ufw` bloqueia a entrada por padrão, libera 5080 e aplica `limit` no SSH (contra força bruta).
 - Fuso `America/Sao_Paulo`, NTP e 2 GB de swap.
@@ -165,7 +169,7 @@ ssh azureuser@<ip> 'sudo tar -C /var/log/oportuniza -cf - .' | tar -C infra/evid
 | 0:00 a 0:20 | Abertura | — |
 | 0:20 a 0:50 | VM vazia | `hostname`, `docker --version`, `git clone`, `cat infra/config.env` |
 | 0:50 a 2:50 | Provisionamento | `sudo ./infra/provision.sh` |
-| 2:50 a 3:30 | Aplicação no ar | Swagger em `http://<ip>:5080/swagger`, login e recomendações |
+| 2:50 a 3:30 | Aplicação no ar | Swagger em `http://oportuniza-gs.chilecentral.cloudapp.azure.com:5080/swagger`, login e recomendações |
 | 3:30 a 4:10 | Monitor como serviço | `systemctl cat oportuniza-monitor`, `tail /var/log/oportuniza/monitor.log` |
 | 4:10 a 6:00 | Teste de falha | `tail -f alertas.log` em outro terminal; `teste-falha.sh monitor`, `api` e `cpu` |
 | 6:00 a 6:30 | Auditoria | `tail auditoria.log`, `aureport -k --summary` |

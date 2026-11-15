@@ -74,4 +74,4 @@ QTD="$(curl -fsS --max-time 10 "$APP_URL_BASE/oportunidades" | jq '.totalItens /
 ok "GET /oportunidades devolveu $QTD oportunidades do seed"
 
 source "$CONF_DIR/rede.env" 2>/dev/null || true
-ok "Swagger: http://${IP_PUBLICO:-<ip-publico>}:$APP_PORTA/swagger"
+ok "Swagger: http://${DNS_PUBLICO:-${IP_PUBLICO:-<ip-publico>}}:$APP_PORTA/swagger"

@@ -39,6 +39,7 @@ GATEWAY=$GATEWAY
 IP_PUBLICO=$IP_PUBLICO
 HOSTNAME=$HOSTNAME_SERVIDOR
 FQDN=$HOSTNAME_SERVIDOR.$DOMINIO_LOCAL
+DNS_PUBLICO=${DNS_PUBLICO:-}
 EOF
 info "Interface $INTERFACE ($MAC): $IP_PRIVADO/$PREFIXO, gateway $GATEWAY, IP público $IP_PUBLICO"
 info "Inventário de rede salvo em $CONF_DIR/rede.env"
@@ -78,6 +79,15 @@ aguardar "Resolução de nomes externos (github.com)" 10 2 resolvectl query gith
 aguardar "Resolução de nomes internos (api.$DOMINIO_LOCAL)" 5 1 getent hosts "api.$DOMINIO_LOCAL"
 aguardar "Rota padrão via $GATEWAY ($INTERFACE)" 5 1 bash -c "ip route get 1.1.1.1 | grep -q 'via $GATEWAY dev $INTERFACE'"
 aguardar "Servidor DNS 1.1.1.1 acessível (TCP/53)" 5 1 timeout 3 bash -c '</dev/tcp/1.1.1.1/53'
+if [[ -n "${DNS_PUBLICO:-}" ]]; then
+  aguardar "Nome público $DNS_PUBLICO resolvendo" 10 3 getent hosts "$DNS_PUBLICO"
+  IP_DO_NOME="$(getent hosts "$DNS_PUBLICO" | awk '{print $1; exit}')"
+  if [[ "$IP_DO_NOME" == "$IP_PUBLICO" ]]; then
+    ok "DNS público: $DNS_PUBLICO -> $IP_DO_NOME (confere com o IP público)"
+  else
+    aviso "DNS público: $DNS_PUBLICO -> ${IP_DO_NOME:-nada}, mas o IP público é $IP_PUBLICO"
+  fi
+fi
 aguardar "Saída para a internet (HTTPS)" 5 2 curl -sS --max-time 5 -o /dev/null https://mcr.microsoft.com
 
 etapa "Firewall (ufw)"
@@ -101,6 +111,7 @@ fi
 etapa "Resumo da infraestrutura"
 info "Hostname: $(hostname) | FQDN: $(hostname -f 2>/dev/null || echo '-')"
 info "IP privado: $IP_PRIVADO/$PREFIXO | IP público: $IP_PUBLICO | Gateway: $GATEWAY"
+info "Nome público: ${DNS_PUBLICO:-não configurado}"
 info "DNS: $(resolvectl dns 2>/dev/null | tr -s ' ' | paste -sd ';')"
 info "Firewall: $(ufw status | head -1)"
 info "Swap: $(swapon --show=SIZE --noheadings | head -1) | Fuso: $(timedatectl show -p Timezone --value)"

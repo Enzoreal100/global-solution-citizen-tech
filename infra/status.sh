@@ -26,6 +26,7 @@ relatorio() {
   echo "Hostname:   $(hostname) ($(hostname -f 2>/dev/null))"
   echo "IP privado: ${IP_PRIVADO:-?}/${PREFIXO:-?} em ${INTERFACE:-?} | gateway ${GATEWAY:-?}"
   echo "IP público: ${IP_PUBLICO:-?}"
+  echo "Nome:       ${DNS_PUBLICO:-?} -> $(getent hosts "${DNS_PUBLICO:-x}" | awk '{print $1}' || echo 'não resolve')"
   echo "DNS:        $(resolvectl dns 2>/dev/null | awk -F': ' 'NF > 1 && $2 != "" {print $2}' | paste -sd ' ')"
   echo "Interno:    $(getent hosts "api.$DOMINIO_LOCAL" | awk '{print $2 " -> " $1}')"
   ufw status | sed -n '1p;/ALLOW\|LIMIT/p' | grep -v '(v6)'
@@ -41,7 +42,7 @@ relatorio() {
 
   secao "Aplicação"
   echo "Saúde:   $(curl -s --max-time 3 "$APP_URL_SAUDE" || echo 'sem resposta')"
-  echo "Swagger: http://${IP_PUBLICO:-<ip>}:$APP_PORTA/swagger"
+  echo "Swagger: http://${DNS_PUBLICO:-${IP_PUBLICO:-<ip>}}:$APP_PORTA/swagger"
 
   secao "Recursos (última leitura do monitor)"
   grep 'cpu=' "$LOG_DIR/monitor.log" 2>/dev/null | tail -1 || echo "sem leituras"

@@ -55,6 +55,7 @@ Os valores do `.env.example` funcionam para testar; troque as senhas em qualquer
 | Os endpoints e o Swagger | [Seção 6](#6-documentação-dos-endpoints) e [`docs/openapi.json`](docs/openapi.json) |
 | Os testes e a cobertura | [Seção 9](#9-testes) |
 | Prints e saídas de execução | [Seção 11](#11-evidências) e pasta [`evidencias/`](evidencias/) |
+| A infraestrutura Linux (provisionamento, monitoramento, auditoria, teste de falha) | [`infra/README.md`](infra/README.md) |
 
 ## Integrantes
 

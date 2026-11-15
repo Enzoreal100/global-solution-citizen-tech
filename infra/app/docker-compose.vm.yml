@@ -1,0 +1,18 @@
+services:
+  mysql:
+    ports: !override
+      - "127.0.0.1:3307:3306"
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  api:
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

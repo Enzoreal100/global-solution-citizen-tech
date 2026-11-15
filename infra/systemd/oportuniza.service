@@ -1,0 +1,17 @@
+[Unit]
+Description=Oportuniza (API .NET 10 + MySQL 8 via Docker Compose)
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=@BIN_DIR@/oportuniza-compose up -d --remove-orphans
+ExecReload=@BIN_DIR@/oportuniza-compose up -d --remove-orphans
+ExecStop=@BIN_DIR@/oportuniza-compose stop
+TimeoutStartSec=600
+SyslogIdentifier=oportuniza
+
+[Install]
+WantedBy=multi-user.target

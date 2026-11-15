@@ -1,0 +1,19 @@
+[Unit]
+Description=Oportuniza - monitor de CPU, memória, disco e saúde da API
+After=network-online.target docker.service oportuniza.service
+Wants=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+EnvironmentFile=@CONF_DIR@/monitor.env
+ExecStart=@BIN_DIR@/oportuniza-monitor
+Restart=always
+RestartSec=5
+OOMScoreAdjust=-900
+MemoryMax=128M
+CPUQuota=25%
+SyslogIdentifier=oportuniza-monitor
+
+[Install]
+WantedBy=multi-user.target

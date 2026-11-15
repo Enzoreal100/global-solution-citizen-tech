@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+exec docker compose \
+  --project-name oportuniza \
+  --project-directory @APP_DIR@ \
+  --env-file @CONF_DIR@/app.env \
+  -f @APP_DIR@/docker-compose.yml \
+  -f @APP_DIR@/docker-compose.vm.yml \
+  "$@"
